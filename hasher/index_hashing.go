@@ -3,7 +3,7 @@ package hasher
 // http://www.peterd.org/pcd-diss.pdf
 // Adaptive Approximate State Storage
 // 6.5.4 Enhanced double hashing
-func EnhancedDoubleHashing(hs *[]uint64, hn int, seed, capacity uint) uint64 {
+func Enhanced64BitDoubleHashing(hs *[]uint64, hn int, seed, capacity uint) uint64 {
 	seed64 := uint64(seed)
 	capacity64 := uint64(capacity)
 	if seed == 0 {

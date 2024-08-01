@@ -169,11 +169,17 @@ func TestCreate(t *testing.T) {
 		SetCapacity(capacity).
 		SetHashNum(hashNum).
 		SetHashFunc(hashName).
+		SetHashScheme("dummyName").
 		Build())
 
 	if stdBloom.HashFuncName() != "murmur3_128" {
 		log.Fatal("you are fake, should be murmur3_128: ", stdBloom.HashFuncName())
 	}
+
+	if stdBloom.HashSchemeName() != "enhanced_double_hashing" {
+		log.Fatal("you are fake, should be enhanced_double_hashing: ", stdBloom.HashSchemeName())
+	}
+
 	testData := []string{
 		"this is a test string",
 		"this is second test string",

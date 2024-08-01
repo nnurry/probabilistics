@@ -8,21 +8,33 @@ import (
 )
 
 type BasicBloomFilter struct {
-	capacity uint
-	hashNum  uint
-	b        *bitset.BitSet
-	hashName string
-	hashFunc hasher.HashFunc64Type
+	capacity       uint
+	hashNum        uint
+	b              *bitset.BitSet
+	hashFuncName   string
+	hashFunc       hasher.HashFunc64Type
+	hashSchemeName string
+	hashScheme     hasher.HashScheme64Type
 }
 
 const SquaredLn2 = math.Ln2 * math.Ln2
 
-func NewBasicBloomFilter(capacity, hashNum uint, hashName string, hashFunc hasher.HashFunc64Type, b *bitset.BitSet) *BasicBloomFilter {
+func NewBasicBloomFilter(
+	capacity,
+	hashNum uint,
+	hashFuncName string,
+	hashFunc hasher.HashFunc64Type,
+	hashSchemeName string,
+	hashScheme hasher.HashScheme64Type,
+	b *bitset.BitSet,
+) *BasicBloomFilter {
 	f := &BasicBloomFilter{
-		capacity: capacity,
-		hashNum:  hashNum,
-		hashName: hashName,
-		hashFunc: hashFunc,
+		capacity:       capacity,
+		hashNum:        hashNum,
+		hashFuncName:   hashFuncName,
+		hashFunc:       hashFunc,
+		hashSchemeName: hashSchemeName,
+		hashScheme:     hashScheme,
 	}
 
 	if b != nil {
@@ -66,15 +78,23 @@ func (f *BasicBloomFilter) BitSet() *bitset.BitSet {
 }
 
 func (f *BasicBloomFilter) HashFuncName() string {
-	return f.hashName
+	return f.hashFuncName
 }
 
 func (f *BasicBloomFilter) HashFunc() hasher.HashFunc64Type {
 	return f.hashFunc
 }
 
+func (f *BasicBloomFilter) HashSchemeName() string {
+	return f.hashSchemeName
+}
+
+func (f *BasicBloomFilter) HashScheme() hasher.HashScheme64Type {
+	return f.hashScheme
+}
+
 func (f *BasicBloomFilter) bitsetIndex(hashes []uint64, numHashes int, seed uint) uint {
-	hash := hasher.EnhancedDoubleHashing(&hashes, numHashes, seed, f.Capacity())
+	hash := f.hashScheme(&hashes, numHashes, seed, f.Capacity())
 	return uint(hash % uint64(f.Capacity()))
 }
 
