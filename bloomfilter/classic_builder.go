@@ -5,7 +5,7 @@ import (
 	"github.com/nnurry/probabilistics/hasher"
 )
 
-type BasicBloomFilterBuilder struct {
+type ClassicBloomFilterBuilder struct {
 	capacity       uint
 	hashNum        uint
 	hashFuncName   string
@@ -15,14 +15,14 @@ type BasicBloomFilterBuilder struct {
 	b              *bitset.BitSet
 }
 
-func NewBasicBloomFilterBuilder() *BasicBloomFilterBuilder {
+func NewClassicBloomFilterBuilder() *ClassicBloomFilterBuilder {
 	defaultCapacity := uint(10000)
 	defaultHashNum := uint(10)
 	defaultHashName := "murmur3_128"
 	defaultHashSchemeName := "enhanced_double_hashing"
 	defaultHashFunc := hasher.GetHashFunc64(defaultHashName)
 	defaultHashScheme := hasher.GetHashScheme64(defaultHashSchemeName)
-	return &BasicBloomFilterBuilder{
+	return &ClassicBloomFilterBuilder{
 		defaultCapacity,
 		defaultHashNum,
 		defaultHashName,
@@ -33,17 +33,17 @@ func NewBasicBloomFilterBuilder() *BasicBloomFilterBuilder {
 	}
 }
 
-func (f *BasicBloomFilterBuilder) SetCapacity(capacity uint) *BasicBloomFilterBuilder {
+func (f *ClassicBloomFilterBuilder) SetCapacity(capacity uint) *ClassicBloomFilterBuilder {
 	f.capacity = capacity
 	return f
 }
 
-func (f *BasicBloomFilterBuilder) SetHashNum(hashNum uint) *BasicBloomFilterBuilder {
+func (f *ClassicBloomFilterBuilder) SetHashNum(hashNum uint) *ClassicBloomFilterBuilder {
 	f.hashNum = hashNum
 	return f
 }
 
-func (f *BasicBloomFilterBuilder) SetHashFunc(hashFuncName string) *BasicBloomFilterBuilder {
+func (f *ClassicBloomFilterBuilder) SetHashFunc(hashFuncName string) *ClassicBloomFilterBuilder {
 	hashFunc := hasher.GetHashFunc64(hashFuncName)
 	if hashFunc != nil {
 		f.hashFuncName = hashFuncName
@@ -52,7 +52,7 @@ func (f *BasicBloomFilterBuilder) SetHashFunc(hashFuncName string) *BasicBloomFi
 	return f
 }
 
-func (f *BasicBloomFilterBuilder) SetHashScheme(hashSchemeName string) *BasicBloomFilterBuilder {
+func (f *ClassicBloomFilterBuilder) SetHashScheme(hashSchemeName string) *ClassicBloomFilterBuilder {
 	hashScheme := hasher.GetHashScheme64(hashSchemeName)
 	if hashScheme != nil {
 		f.hashSchemeName = hashSchemeName
@@ -61,13 +61,13 @@ func (f *BasicBloomFilterBuilder) SetHashScheme(hashSchemeName string) *BasicBlo
 	return f
 }
 
-func (f *BasicBloomFilterBuilder) SetBitSet(b *bitset.BitSet) *BasicBloomFilterBuilder {
+func (f *ClassicBloomFilterBuilder) SetBitSet(b *bitset.BitSet) *ClassicBloomFilterBuilder {
 	f.b = b
 	return f
 }
 
-func (f *BasicBloomFilterBuilder) Build() *BasicBloomFilter {
-	return NewBasicBloomFilter(
+func (f *ClassicBloomFilterBuilder) Build() *ClassicBloomFilter {
+	return NewClassicBloomFilter(
 		f.capacity,
 		f.hashNum,
 		f.hashFuncName,

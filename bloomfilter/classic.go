@@ -7,7 +7,7 @@ import (
 	"github.com/nnurry/probabilistics/hasher"
 )
 
-type BasicBloomFilter struct {
+type ClassicBloomFilter struct {
 	capacity       uint
 	hashNum        uint
 	b              *bitset.BitSet
@@ -19,7 +19,7 @@ type BasicBloomFilter struct {
 
 const SquaredLn2 = math.Ln2 * math.Ln2
 
-func NewBasicBloomFilter(
+func NewClassicBloomFilter(
 	capacity,
 	hashNum uint,
 	hashFuncName string,
@@ -27,8 +27,8 @@ func NewBasicBloomFilter(
 	hashSchemeName string,
 	hashScheme hasher.HashScheme64Type,
 	b *bitset.BitSet,
-) *BasicBloomFilter {
-	f := &BasicBloomFilter{
+) *ClassicBloomFilter {
+	f := &ClassicBloomFilter{
 		capacity:       capacity,
 		hashNum:        hashNum,
 		hashFuncName:   hashFuncName,
@@ -55,7 +55,7 @@ func estimateHashNum(capacity float64, elements float64) float64 {
 }
 
 // Andrii Gakhov - PDSA book (section 2.1 - page 29)
-func BasicBloomEstimateParameters(falsePositive float64, elements uint) (capacity, hashNum uint) {
+func ClassicBloomEstimateParameters(falsePositive float64, elements uint) (capacity, hashNum uint) {
 	n := float64(elements)
 	m := estimateCapacity(falsePositive, n)
 	k := estimateHashNum(m, n)
@@ -65,40 +65,20 @@ func BasicBloomEstimateParameters(falsePositive float64, elements uint) (capacit
 	return capacity, hashNum
 }
 
-func (f *BasicBloomFilter) Capacity() uint {
-	return f.capacity
-}
+func (f *ClassicBloomFilter) Capacity() uint                      { return f.capacity }
+func (f *ClassicBloomFilter) HashNum() uint                       { return f.hashNum }
+func (f *ClassicBloomFilter) BitSet() *bitset.BitSet              { return f.b }
+func (f *ClassicBloomFilter) HashFuncName() string                { return f.hashFuncName }
+func (f *ClassicBloomFilter) HashFunc() hasher.HashFunc64Type     { return f.hashFunc }
+func (f *ClassicBloomFilter) HashSchemeName() string              { return f.hashSchemeName }
+func (f *ClassicBloomFilter) HashScheme() hasher.HashScheme64Type { return f.hashScheme }
 
-func (f *BasicBloomFilter) HashNum() uint {
-	return f.hashNum
-}
-
-func (f *BasicBloomFilter) BitSet() *bitset.BitSet {
-	return f.b
-}
-
-func (f *BasicBloomFilter) HashFuncName() string {
-	return f.hashFuncName
-}
-
-func (f *BasicBloomFilter) HashFunc() hasher.HashFunc64Type {
-	return f.hashFunc
-}
-
-func (f *BasicBloomFilter) HashSchemeName() string {
-	return f.hashSchemeName
-}
-
-func (f *BasicBloomFilter) HashScheme() hasher.HashScheme64Type {
-	return f.hashScheme
-}
-
-func (f *BasicBloomFilter) bitsetIndex(hashes []uint64, numHashes int, seed uint) uint {
+func (f *ClassicBloomFilter) bitsetIndex(hashes []uint64, numHashes int, seed uint) uint {
 	hash := f.hashScheme(&hashes, numHashes, seed, f.Capacity())
 	return uint(hash % uint64(f.Capacity()))
 }
 
-func (f *BasicBloomFilter) Add(data []byte) *BasicBloomFilter {
+func (f *ClassicBloomFilter) Add(data []byte) *ClassicBloomFilter {
 	hs, hn := f.hashFunc(data)
 	for seed := uint(0); seed < f.HashNum(); seed++ {
 		idx := f.bitsetIndex(hs, hn, seed)
@@ -107,7 +87,7 @@ func (f *BasicBloomFilter) Add(data []byte) *BasicBloomFilter {
 	return f
 }
 
-func (f *BasicBloomFilter) Contains(data []byte) bool {
+func (f *ClassicBloomFilter) Contains(data []byte) bool {
 	hs, hn := f.hashFunc(data)
 	for seed := uint(0); seed < f.HashNum(); seed++ {
 		idx := f.bitsetIndex(hs, hn, seed)

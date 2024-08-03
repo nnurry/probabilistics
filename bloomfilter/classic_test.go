@@ -162,22 +162,22 @@ func printDebug(fp float64, n, capacity, hashNum uint) {
 }
 
 func TestCreate(t *testing.T) {
-	capacity, hashNum := bloomfilter.BasicBloomEstimateParameters(0.001, 10000)
+	capacity, hashNum := bloomfilter.ClassicBloomEstimateParameters(0.001, 10000)
 	hashName := "fakerSTKSacombank" // deliberately wrong name
-	stdBloom := (bloomfilter.
-		NewBasicBloomFilterBuilder().
+	clsBloom := (bloomfilter.
+		NewClassicBloomFilterBuilder().
 		SetCapacity(capacity).
 		SetHashNum(hashNum).
 		SetHashFunc(hashName).
 		SetHashScheme("dummyName").
 		Build())
 
-	if stdBloom.HashFuncName() != "murmur3_128" {
-		log.Fatal("you are fake, should be murmur3_128: ", stdBloom.HashFuncName())
+	if clsBloom.HashFuncName() != "murmur3_128" {
+		log.Fatal("you are fake, should be murmur3_128: ", clsBloom.HashFuncName())
 	}
 
-	if stdBloom.HashSchemeName() != "enhanced_double_hashing" {
-		log.Fatal("you are fake, should be enhanced_double_hashing: ", stdBloom.HashSchemeName())
+	if clsBloom.HashSchemeName() != "enhanced_double_hashing" {
+		log.Fatal("you are fake, should be enhanced_double_hashing: ", clsBloom.HashSchemeName())
 	}
 
 	testData := []string{
@@ -189,14 +189,14 @@ func TestCreate(t *testing.T) {
 
 	for _, str := range testData {
 		byteStr := []byte(str)
-		stdBloom.Add(byteStr)
-		if !stdBloom.Contains(byteStr) {
+		clsBloom.Add(byteStr)
+		if !clsBloom.Contains(byteStr) {
 			log.Fatal("should be in the filter")
 		}
 		log.Println("Found", str)
 	}
 
-	if stdBloom.Contains([]byte("this should not be in the filter")) {
+	if clsBloom.Contains([]byte("this should not be in the filter")) {
 		log.Fatal("this item is not added into the filter but you said yes -> false negative -> wrong")
 	}
 	log.Println("aight you good bro")
@@ -208,7 +208,7 @@ func TestEstimateParameters(t *testing.T) {
 	for _, testParameter := range testParameters {
 		fp := testParameter.P
 		n := testParameter.N
-		capacity, hashNum = bloomfilter.BasicBloomEstimateParameters(fp, n)
+		capacity, hashNum = bloomfilter.ClassicBloomEstimateParameters(fp, n)
 		if maxK < int(hashNum) {
 			maxK = int(hashNum)
 		}

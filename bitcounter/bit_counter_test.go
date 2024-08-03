@@ -9,7 +9,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	counter, err := bitcounter.NewBitCounter(64, 4)
+	counter, err := bitcounter.NewSqBitCounter(64, 4)
 	if err != nil {
 		log.Fatal("failed to create counter:", err)
 	}

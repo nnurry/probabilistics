@@ -5,7 +5,8 @@ import (
 	"math"
 )
 
-type BitCounter struct {
+// k-bit counter for k = 2^n
+type SqBitCounter struct {
 	capacity        uint
 	bitRange        uint
 	containers      []uint64
@@ -15,13 +16,13 @@ type BitCounter struct {
 
 var bitShiftFactor = uint(math.Log2(64))
 
-func (b *BitCounter) Capacity() uint        { return b.capacity }
-func (b *BitCounter) BitRange() uint        { return b.bitRange }
-func (b *BitCounter) ContainerSize() uint   { return b.containerSize }
-func (b *BitCounter) TotalContainers() uint { return b.totalContainers }
-func (b *BitCounter) Containers() *[]uint64 { return &b.containers }
+func (b *SqBitCounter) Capacity() uint        { return b.capacity }
+func (b *SqBitCounter) BitRange() uint        { return b.bitRange }
+func (b *SqBitCounter) ContainerSize() uint   { return b.containerSize }
+func (b *SqBitCounter) TotalContainers() uint { return b.totalContainers }
+func (b *SqBitCounter) Containers() *[]uint64 { return &b.containers }
 
-func NewBitCounter(capacity, bitRange uint) (*BitCounter, error) {
+func NewSqBitCounter(capacity, bitRange uint) (*SqBitCounter, error) {
 	errorString := "can't create counting set: (%s)"
 
 	if bitRange != 2 && bitRange != 4 && bitRange != 8 && bitRange != 16 && bitRange != 32 {
@@ -35,7 +36,7 @@ func NewBitCounter(capacity, bitRange uint) (*BitCounter, error) {
 	totalBits := capacity * bitRange
 	totalContainers := uint(math.Ceil(float64(totalBits) / 64))
 
-	bitCounter := BitCounter{
+	bitCounter := SqBitCounter{
 		capacity:        capacity,
 		bitRange:        bitRange,
 		containerSize:   64 / bitRange,
@@ -46,7 +47,7 @@ func NewBitCounter(capacity, bitRange uint) (*BitCounter, error) {
 	return &bitCounter, nil
 }
 
-func (b *BitCounter) checkOffset(offsetIndex uint) error {
+func (b *SqBitCounter) checkOffset(offsetIndex uint) error {
 	if offsetIndex >= b.capacity*(b.bitRange-1) {
 		// invalid offset (must be a factor of b.bitRange)
 		return fmt.Errorf("invalid offset (exceed limit)")
@@ -58,7 +59,7 @@ func (b *BitCounter) checkOffset(offsetIndex uint) error {
 	return nil
 }
 
-func (b *BitCounter) Read(offsetIndex uint) (counterValue uint64, err error) {
+func (b *SqBitCounter) Read(offsetIndex uint) (counterValue uint64, err error) {
 	err = b.checkOffset(offsetIndex)
 	counterValue = b.containers[offsetIndex>>bitShiftFactor]
 
@@ -75,7 +76,7 @@ func (b *BitCounter) Read(offsetIndex uint) (counterValue uint64, err error) {
 	return counterValue, err
 }
 
-func (b *BitCounter) Write(offsetIndex uint, value uint64) (err error) {
+func (b *SqBitCounter) Write(offsetIndex uint, value uint64) (err error) {
 	err = b.checkOffset(offsetIndex)
 
 	startIndex := offsetIndex % 64
@@ -96,7 +97,7 @@ func (b *BitCounter) Write(offsetIndex uint, value uint64) (err error) {
 	return err
 }
 
-func (b *BitCounter) update(offsetIndex uint, delta uint, isIncrement bool) (beforeValue, afterValue uint64, err error) {
+func (b *SqBitCounter) update(offsetIndex uint, delta uint, isIncrement bool) (beforeValue, afterValue uint64, err error) {
 	beforeValue, err = b.Read(offsetIndex)
 	if err != nil {
 		return uint64(0), uint64(0), err
@@ -116,7 +117,10 @@ func (b *BitCounter) update(offsetIndex uint, delta uint, isIncrement bool) (bef
 	} else {
 		if delta64 > beforeValue {
 			// cause overflow -> handle differently
-			return beforeValue, uint64(0), fmt.Errorf("negative decremented value (%04b - %04b < 0)", beforeValue, delta64)
+			return beforeValue, uint64(0), fmt.Errorf(
+				"negative decremented value (%04b - %04b < 0)",
+				beforeValue, delta64,
+			)
 		}
 		afterValue = beforeValue - delta64
 	}
@@ -127,10 +131,10 @@ func (b *BitCounter) update(offsetIndex uint, delta uint, isIncrement bool) (bef
 	return beforeValue, afterValue, err
 }
 
-func (b *BitCounter) Increment(offsetIndex uint) (uint64, uint64, error) {
+func (b *SqBitCounter) Increment(offsetIndex uint) (uint64, uint64, error) {
 	return b.update(offsetIndex*b.bitRange, 1, true)
 }
 
-func (b *BitCounter) Decrement(offsetIndex uint) (uint64, uint64, error) {
+func (b *SqBitCounter) Decrement(offsetIndex uint) (uint64, uint64, error) {
 	return b.update(offsetIndex*b.bitRange, 1, false)
 }

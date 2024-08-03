@@ -18,37 +18,14 @@ type NaiveCountingBloomFilter struct {
 	hashScheme     hasher.HashScheme64Type
 }
 
-func (f *NaiveCountingBloomFilter) Capacity() uint {
-	return f.capacity
-}
-
-func (f *NaiveCountingBloomFilter) HashNum() uint {
-	return f.hashNum
-}
-
-func (f *NaiveCountingBloomFilter) BitSet() *bitset.BitSet {
-	return f.b
-}
-
-func (f *NaiveCountingBloomFilter) Counter() *[]uint8 {
-	return &f.counter
-}
-
-func (f *NaiveCountingBloomFilter) HashFuncName() string {
-	return f.hashFuncName
-}
-
-func (f *NaiveCountingBloomFilter) HashFunc() hasher.HashFunc64Type {
-	return f.hashFunc
-}
-
-func (f *NaiveCountingBloomFilter) HashSchemeName() string {
-	return f.hashSchemeName
-}
-
-func (f *NaiveCountingBloomFilter) HashScheme() hasher.HashScheme64Type {
-	return f.hashScheme
-}
+func (f *NaiveCountingBloomFilter) Capacity() uint                      { return f.capacity }
+func (f *NaiveCountingBloomFilter) HashNum() uint                       { return f.hashNum }
+func (f *NaiveCountingBloomFilter) BitSet() *bitset.BitSet              { return f.b }
+func (f *NaiveCountingBloomFilter) Counter() *[]uint8                   { return &f.counter }
+func (f *NaiveCountingBloomFilter) HashFuncName() string                { return f.hashFuncName }
+func (f *NaiveCountingBloomFilter) HashFunc() hasher.HashFunc64Type     { return f.hashFunc }
+func (f *NaiveCountingBloomFilter) HashSchemeName() string              { return f.hashSchemeName }
+func (f *NaiveCountingBloomFilter) HashScheme() hasher.HashScheme64Type { return f.hashScheme }
 
 func (f *NaiveCountingBloomFilter) bitsetIndex(hashes []uint64, numHashes int, seed uint) uint {
 	hash := f.hashScheme(&hashes, numHashes, seed, f.Capacity())
