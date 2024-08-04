@@ -15,10 +15,7 @@ func NewSuperLogLog(kBit uint, log2CounterRange uint) (*SuperLogLog, error) {
 	if err != nil {
 		return nil, err
 	}
-	alphaM := alphaInf
-	if sapc.buckets.Capacity() >= 64 {
-		alphaM -= (2*PiSquare + Ln2Square) / float64(48*sapc.buckets.Capacity())
-	}
+	alphaM := LogLogAlphaM(sapc.buckets.Capacity())
 
 	return &SuperLogLog{sapc, alphaM}, nil
 }
