@@ -34,7 +34,7 @@ func (h *ProbabilisticCounter) PMax() uint {
 }
 
 func (h *ProbabilisticCounter) addHash(item uint64) {
-	p := uint(bits.TrailingZeros64(item))
+	p := uint(bits.TrailingZeros64(item) + 1)
 	// update max trailing zeroes
 	if p > h.pMax {
 		h.pMax = p

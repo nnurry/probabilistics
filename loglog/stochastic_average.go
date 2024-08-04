@@ -34,7 +34,7 @@ func (h *StochAvgProbabilisticCounter) addHash(item uint64) error {
 	// take the rest
 	item <<= uint64(h.kBit)
 	// add to bucket
-	p := uint64(bits.TrailingZeros64(item))
+	p := uint64(bits.TrailingZeros64(item) + 1)
 
 	// within counter limit -> read counter
 	if p < ((1 << h.buckets.BitRange()) - 1) {
