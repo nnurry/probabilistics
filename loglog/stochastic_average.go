@@ -63,15 +63,24 @@ func (h *StochAvgProbabilisticCounter) Add(item []byte) error {
 	return nil
 }
 
+func (h *StochAvgProbabilisticCounter) getBucketsPmax() []float64 {
+	pMaxes := make([]float64, h.buckets.Capacity())
+	for i := uint(0); i < h.buckets.Capacity(); i++ {
+		counterVal, _ := h.buckets.Read(i)
+		pMaxes = append(pMaxes, float64(counterVal))
+	}
+	return pMaxes
+}
+
 func (h *StochAvgProbabilisticCounter) Cardinality() uint {
 	avgPMax := float64(0)
 
-	for i := uint(0); i < h.buckets.Capacity(); i++ {
-		counterVal, _ := h.buckets.Read(i)
-		avgPMax += float64(counterVal)
+	for _, pMax := range h.getBucketsPmax() {
+		avgPMax += pMax
 	}
 
 	avgPMax /= float64(h.buckets.Capacity())
 
+	// E = 2^A * m
 	return uint(math.Pow(2, avgPMax) * float64(h.buckets.Capacity()))
 }
