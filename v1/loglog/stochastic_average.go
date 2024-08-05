@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/bits"
 
-	"github.com/nnurry/probabilistics/bitcounter"
-	"github.com/nnurry/probabilistics/hasher"
+	"github.com/nnurry/probabilistics/v1/bitcounter"
+	"github.com/nnurry/probabilistics/v1/hasher"
 )
 
 type StochAvgProbabilisticCounter struct {

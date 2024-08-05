@@ -43,7 +43,7 @@ func (h *HyperLogLog) Cardinality() uint {
 	// formula = alphaM * m / (m / normalized harmonic mean of p max)
 	nNormHarmonicAvgPMax := float64(0)
 
-	// sigma(2^(pj))j[p0...pn-1] -> normalized harmonic mean
+	// sigma(2^-(pj))j[p0...pn-1] -> normalized harmonic mean
 	for _, pMax := range h.sapc.getBucketsPmax() {
 		nNormHarmonicAvgPMax += math.Pow(2, -pMax)
 	}

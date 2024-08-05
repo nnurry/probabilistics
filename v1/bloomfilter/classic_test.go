@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/nnurry/probabilistics/bloomfilter"
+	"github.com/nnurry/probabilistics/v1/bloomfilter"
 )
 
 var testParameters = []struct {
@@ -158,7 +158,7 @@ var testParameters = []struct {
 }
 
 func printDebug(fp float64, n, capacity, hashNum uint) {
-	fmt.Printf("(%v, %d) ->\t m = %d (kb), k = %d\n", fp, n, capacity>>3>>10, hashNum)
+	fmt.Printf("(%v, %d) ->\t m = %d (bits), k = %d\n", fp, n, capacity>>3>>10, hashNum)
 }
 
 func TestCreate(t *testing.T) {

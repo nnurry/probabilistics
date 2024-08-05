@@ -2,7 +2,7 @@ package bloomfilter
 
 import (
 	"github.com/bits-and-blooms/bitset"
-	"github.com/nnurry/probabilistics/hasher"
+	"github.com/nnurry/probabilistics/v1/hasher"
 )
 
 type ClassicBloomFilterBuilder struct {

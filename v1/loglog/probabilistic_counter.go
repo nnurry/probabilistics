@@ -3,7 +3,7 @@ package loglog
 import (
 	"math/bits"
 
-	"github.com/nnurry/probabilistics/hasher"
+	"github.com/nnurry/probabilistics/v1/hasher"
 )
 
 type ProbabilisticCounter struct {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/nnurry/probabilistics/bitcounter"
+	"github.com/nnurry/probabilistics/v1/bitcounter"
 )
 
 func TestCreate(t *testing.T) {
