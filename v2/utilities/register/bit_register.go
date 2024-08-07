@@ -9,41 +9,27 @@ import (
 
 // 1-bit register
 type BitRegister struct {
-	capacity        uint
-	containers      []uint
-	containerSize   uint
-	totalContainers uint
+	capacity          uint
+	containers        []uint
+	containerCapacity uint
+	totalContainers   uint
 }
 
-func NewBitRegister(capacity uint) (*BitRegister, error) {
+func newBitRegister(capacity uint) (*BitRegister, error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf(InvalidCapacityMsg, capacity)
 	}
-	containers := make([]uint, capacity)
-	containerSize := uint(arch.IntSize)
-	totalContainers := math.Ceil(float64(capacity) / float64(containerSize))
+	containerCapacity := uint(arch.IntSize)
+	totalContainers := uint(math.Ceil(float64(capacity) / float64(containerCapacity)))
+	containers := make([]uint, totalContainers)
 
 	register := &BitRegister{
-		capacity:        capacity,
-		containers:      containers,
-		containerSize:   uint(containerSize),
-		totalContainers: uint(totalContainers),
+		capacity:          capacity,
+		containers:        containers,
+		containerCapacity: containerCapacity,
+		totalContainers:   totalContainers,
 	}
 	return register, nil
-}
-
-func (r *BitRegister) getLeftBitOffset(offset uint) uint {
-	// containerSize is either 32/64 (32-bit & 64-bit word with 32/64 1-bit registers)
-	// x % y, y = 2^k -> x % y = x & (y - 1)
-	return offset & (r.containerSize - 1)
-}
-
-func (r *BitRegister) checkOffset(offset uint) error {
-	// invalid upper bound
-	if offset > r.capacity-1 {
-		return fmt.Errorf(UpperInvalidOffsetMsg, offset, r.capacity-1)
-	}
-	return nil
 }
 
 // callable when checkOffset() != nil, otherwise fatal
@@ -52,9 +38,9 @@ func (r *BitRegister) read(offset uint) (value, helperValue uint) {
 	containerOffset := offset >> arch.Log2IntSize
 	container := r.containers[containerOffset]
 	// get bit offset in word from the left
-	leftOffset := r.getLeftBitOffset(offset)
+	leftOffset := getLeftBitOffset(offset)
 	// get bit offset in word from the right for bit truncation
-	rightOffset := (r.containerSize - 1) - leftOffset
+	rightOffset := (r.containerCapacity - 1) - leftOffset
 	// truncate all bits except for bit at index
 	helperValue = uint(1 << rightOffset) // [[0]*a]x[[0]*b]
 	value = container & helperValue
@@ -64,18 +50,38 @@ func (r *BitRegister) read(offset uint) (value, helperValue uint) {
 	return value, helperValue
 }
 
+func (r *BitRegister) Capacity() (capacity uint) {
+	capacity = r.capacity
+	return capacity
+}
+
+func (r *BitRegister) BitWidth() (bitWidth uint) {
+	bitWidth = 1
+	return bitWidth
+}
+
+func (r *BitRegister) MaxValue() (maxValue uint) {
+	maxValue = 1
+	return maxValue
+}
+
 func (r *BitRegister) Read(offset uint) (value uint, err error) {
-	if err = r.checkOffset(offset); err != nil {
-		return uint(0), err
+	if err = checkOffset(r, offset); err != nil {
+		return 0, err
 	}
 	value, _ = r.read(offset)
 	return value, nil
 }
 
 func (r *BitRegister) Write(offset uint, value uint) (oldValue uint, err error) {
-	if err = r.checkOffset(offset); err != nil {
+	if err = checkOffset(r, offset); err != nil {
 		return 0, err
 	}
+
+	if checkValueOutbound(r, value) {
+		return 0, fmt.Errorf(ExceedRegisterValueMsg, value, 1)
+	}
+
 	oldValue, helperValue := r.read(offset)
 
 	if oldValue == value {

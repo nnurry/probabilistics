@@ -8,10 +8,13 @@ import (
 )
 
 type Register interface {
-	Read(uint) (uint, error)
-	Write(uint, uint) (uint, error)
-	Increment(uint) (uint, uint, error)
-	Decrement(uint) (uint, uint, error)
+	Capacity() (capacity uint)
+	BitWidth() (bitWidth uint)
+	MaxValue() (maxValue uint)
+	Read(offset uint) (value uint, err error)
+	Write(offset uint, value uint) (oldValue uint, err error)
+	Increment(offset uint) (before, after uint, err error)
+	Decrement(offset uint) (before, after uint, err error)
 }
 
 const (
@@ -19,32 +22,82 @@ const (
 )
 
 const (
+	invalidRegisterValueMsg = "invalid register value"
+	ExceedRegisterValueMsg  = invalidRegisterValueMsg + " (%v > %v)"
+)
+
+const (
 	invalidOffsetMsg      = "invalid offset"
+	UndivisibleOffsetMsg  = invalidOffsetMsg + " (%v mod %v != 0)"
 	UpperInvalidOffsetMsg = invalidOffsetMsg + " (%v > %v)"
 	LowerInvalidOffsetMsg = invalidOffsetMsg + " (%v < 0)"
 )
 
 const (
-	invalidBitWidth = "invalid bit width"
-	ExceedBitWidth  = invalidBitWidth + " (%v > %v)"
+	invalidBitWidth     = "invalid bit width"
+	NonPositiveBitWidth = invalidBitWidth + " (%v <= 0)"
+	ExceedBitWidth      = invalidBitWidth + " (%v > %v)"
 )
 
+func lastCounterOffset(r Register) uint {
+	return (r.Capacity() - 1) * r.BitWidth()
+}
+
+func getLeftBitOffset(offset uint) uint {
+	return offset & (arch.IntSize - 1)
+}
+
+func checkOffset(r Register, offset uint) error {
+	// access inappropriate register range
+	if offset%r.BitWidth() != 0 {
+		return fmt.Errorf(UndivisibleOffsetMsg, offset, r.BitWidth())
+	}
+	// invalid upper bound
+	lastCounterOffset := lastCounterOffset(r)
+	if offset > lastCounterOffset {
+		return fmt.Errorf(UpperInvalidOffsetMsg, offset, lastCounterOffset)
+	}
+	return nil
+}
+
+func PrintAll(r Register) {
+	values := []uint{}
+	for i := uint(0); i < r.Capacity(); i++ {
+		value, _ := r.Read(i)
+		values = append(values, value)
+	}
+	fmt.Printf(
+		"%d-bit register:\tcapacity=%d (allocated=%d)\tvalues:%v\n",
+		r.BitWidth(),
+		r.Capacity(),
+		len(values),
+		values,
+	)
+}
+
+func checkValueOutbound(r Register, value uint) bool {
+	return value > r.MaxValue()
+}
+
 func NewRegister(capacity, bitWidth uint) (r Register, err error) {
+	if bitWidth == 0 {
+		return nil, fmt.Errorf(NonPositiveBitWidth, bitWidth)
+	}
 	if bitWidth > arch.IntSize {
 		// must be smaller than word size (32 or 64 bit width)
 		return nil, fmt.Errorf(ExceedBitWidth, bitWidth, arch.IntSize)
 	}
+
 	if bitWidth == 1 {
 		// 1-bit register
-		register, err := NewBitRegister(capacity)
-		return register, err
-	}
-	if math.Floor(math.Log2(float64(bitWidth))) == math.Ceil(math.Log2(float64(bitWidth))) {
+		r, err = newBitRegister(capacity)
+	} else if math.Floor(math.Log2(float64(bitWidth))) == math.Ceil(math.Log2(float64(bitWidth))) {
 		// 2^k-bit register
-		register, err := NewStdBitRegister(capacity, bitWidth)
-		return register, err
+		r, err = newStdBitRegister(capacity, bitWidth)
+	} else {
+		// weird registers (5-bit, 6-bit) - theoretical HLL uses this
+		r, err = newNonStdBitRegister(capacity, bitWidth)
 	}
 
-	register, err := NewNonStdBitRegister(capacity, bitWidth)
-	return register, err
+	return r, err
 }
