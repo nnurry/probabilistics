@@ -22,10 +22,6 @@ const (
 	blockSize uint64 = 16 // 1 block consists of 16 bits
 )
 
-var murmur3HashConfigs = HashConfigurations{
-	HashAttribute{64, 128}: HashFunction{Hash128, "[]uint64"},
-}
-
 func fmix64(h uint64) uint64 {
 	h ^= h >> 33
 	h *= 0xff51afd7ed558ccd
@@ -38,7 +34,7 @@ func fmix64(h uint64) uint64 {
 
 // hash into 128-bit representation of data
 // (64 MSBs in 1st 64-bit hash and 64 LSBs in 2nd 64-bit hash)
-func Hash128(data []byte, seed interface{}) (interface{}, error) {
+func murmur3Hash128(data []byte, seed interface{}) ([]uint64, error) {
 	cvtSeed, ok := seed.(uint64)
 	if !ok {
 		return nil, fmt.Errorf(InvalidSeedTypeMsg, "uint64")
