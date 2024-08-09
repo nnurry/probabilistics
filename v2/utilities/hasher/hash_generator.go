@@ -24,9 +24,8 @@ func NewHashGenerator[T HashOutType](hashFamily string, platformBit uint, output
 	return hashGenerator, nil
 }
 
-func (g *HashGenerator[T]) GenerateHash(data []byte, seed interface{}, hashCeil uint, times uint) ([]T, error) {
+func (g *HashGenerator[T]) GenerateHash(data []byte, seed T, hashCeil uint, times uint) ([]T, error) {
 	output := make([]T, times)
-	seedT := seed.(T)
 	hashCeilT := T(hashCeil)
 	hashes, err := g.hashFunction(data, seed)
 	if err != nil {
@@ -38,7 +37,7 @@ func (g *HashGenerator[T]) GenerateHash(data []byte, seed interface{}, hashCeil 
 	if len(hashes) < 2 {
 		// only standard
 		for i := uint(1); i < times; i++ {
-			hashes, err = g.hashFunction(data, seedT+T(i))
+			hashes, err = g.hashFunction(data, seed+T(i))
 			if err != nil {
 				return nil, err
 			}
@@ -53,22 +52,22 @@ func (g *HashGenerator[T]) GenerateHash(data []byte, seed interface{}, hashCeil 
 		// 6.5.4 Enhanced double hashing
 
 		for i := uint(1); i < times; i++ {
-			newSeedT := seedT + T(i)
+			newseed := seed + T(i)
 			hashes[0] = (hashes[0] + hashes[1]) % hashCeilT
-			hashes[1] = (hashes[1] + newSeedT) % hashCeilT
+			hashes[1] = (hashes[1] + newseed) % hashCeilT
 			output = append(output, hashes[0])
 		}
 		return output, nil
 	} else if g.generateMethod == "kirsch-mitzenmacher" {
 		// Kirsch-Mitzenmacher for accomodating variable-sized hash slice (just made it up, don't know if it holds valid)
-		seedT += 3
+		seed += 3
 		for i := uint(0); i < times; i++ {
 			finalHash := hashes[0]
-			newSeedT := seedT + T(i)
-			powerSeedT := newSeedT
+			newseed := seed + T(i)
+			powerseed := newseed
 			for j := 1; j < len(hashes); j++ {
-				finalHash += (powerSeedT * hashes[i]) % hashCeilT
-				powerSeedT *= newSeedT
+				finalHash += (powerseed * hashes[i]) % hashCeilT
+				powerseed *= newseed
 			}
 			output = append(output, finalHash)
 		}
@@ -78,7 +77,7 @@ func (g *HashGenerator[T]) GenerateHash(data []byte, seed interface{}, hashCeil 
 	output = append(output, hashes[1:]...)
 	i := uint(len(hashes))
 	for i < times-1 {
-		hashes, err = g.hashFunction(data, seedT+T(i))
+		hashes, err = g.hashFunction(data, seed+T(i))
 		if err != nil {
 			return nil, err
 		}

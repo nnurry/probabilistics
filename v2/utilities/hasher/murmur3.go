@@ -4,7 +4,6 @@ package hasher
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math/bits"
 )
 
@@ -34,15 +33,11 @@ func fmix64(h uint64) uint64 {
 
 // hash into 128-bit representation of data
 // (64 MSBs in 1st 64-bit hash and 64 LSBs in 2nd 64-bit hash)
-func murmur3Hash128(data []byte, seed interface{}) ([]uint64, error) {
-	cvtSeed, ok := seed.(uint64)
-	if !ok {
-		return nil, fmt.Errorf(InvalidSeedTypeMsg, "uint64")
-	}
+func murmur3Hash128(data []byte, seed uint64) ([]uint64, error) {
 	dataLength := uint64(len(data))
 	// initialize 2 64-bit hash repr of final 128-bit output
-	h1 := cvtSeed
-	h2 := cvtSeed
+	h1 := seed
+	h2 := seed
 
 	/*
 		Perform block mix:

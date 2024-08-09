@@ -18,7 +18,7 @@ type HashOutType interface {
 	uint | uint32 | uint64
 }
 
-type HashFunction[T HashOutType] func([]byte, interface{}) ([]T, error)
+type HashFunction[T HashOutType] func([]byte, T) ([]T, error)
 type HashAttribute struct {
 	hashFamily  string
 	platformBit uint
