@@ -66,7 +66,7 @@ func (g *HashGenerator[T]) GenerateHash(data []byte, seed T, hashCeil uint, time
 			newseed := seed + T(i)
 			powerseed := newseed
 			for j := 1; j < len(hashes); j++ {
-				finalHash += (powerseed * hashes[i]) % hashCeilT
+				finalHash += (powerseed * hashes[j]) % hashCeilT
 				powerseed *= newseed
 			}
 			output = append(output, finalHash)

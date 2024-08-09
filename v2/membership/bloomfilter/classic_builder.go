@@ -8,13 +8,20 @@ import (
 type ClassicBFBuilder[T hasher.HashOutType] struct {
 	cap uint
 	k   uint
+	r   *register.BitRegister
 	h   hasher.HashGenerator[T]
 }
 
 func NewClassicBFBuilder[T hasher.HashOutType]() *ClassicBFBuilder[T] {
 	defaultCap, defaultK := ClassicBFEstimateParams(0.01, 10000)
 	defaultHasher, _ := hasher.NewHashGenerator[T]("murmur3", 64, 128, "extended-double-hashing")
-	return &ClassicBFBuilder[T]{defaultCap, defaultK, *defaultHasher}
+	defaultRegister, _ := register.NewRegister(defaultCap, 1)
+	return &ClassicBFBuilder[T]{
+		cap: defaultCap,
+		k:   defaultK,
+		r:   defaultRegister.(*register.BitRegister),
+		h:   *defaultHasher,
+	}
 }
 
 func (b *ClassicBFBuilder[T]) SetCap(cap uint) *ClassicBFBuilder[T] {
@@ -24,6 +31,11 @@ func (b *ClassicBFBuilder[T]) SetCap(cap uint) *ClassicBFBuilder[T] {
 
 func (b *ClassicBFBuilder[T]) SetHashNum(k uint) *ClassicBFBuilder[T] {
 	b.k = k
+	return b
+}
+
+func (b *ClassicBFBuilder[T]) SetRegister(r *register.BitRegister) *ClassicBFBuilder[T] {
+	b.r = r
 	return b
 }
 
@@ -37,11 +49,10 @@ func (b *ClassicBFBuilder[T]) SetHashGenerator(hashFamily string, platformBit ui
 }
 
 func (b *ClassicBFBuilder[T]) Build() *ClassicBF[T] {
-	r, _ := register.NewRegister(b.cap, 1)
 	bf := &ClassicBF[T]{
 		cap: b.cap,
 		k:   b.k,
-		r:   r.(*register.BitRegister),
+		r:   b.r,
 		h:   b.h,
 	}
 	return bf

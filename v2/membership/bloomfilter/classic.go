@@ -30,3 +30,26 @@ func ClassicBFEstimateParams(fpr float64, elems uint) (m, k uint) {
 
 	return m, k
 }
+
+func (f *ClassicBF[T]) Cap() uint { return f.cap }
+
+func (f *ClassicBF[T]) Add(data []byte) *ClassicBF[T] {
+	hashes, _ := f.h.GenerateHash(data, 0, f.cap, f.k)
+	for _, hash := range hashes {
+		rIdx := uint(hash % T(f.cap))
+		f.r.Write(rIdx, 1)
+	}
+	return f
+}
+
+func (f *ClassicBF[T]) Contains(data []byte) bool {
+	hashes, _ := f.h.GenerateHash(data, 0, f.cap, f.k)
+	for _, hash := range hashes {
+		rIdx := uint(hash % T(f.cap))
+		v, err := f.r.Read(rIdx)
+		if err != nil || v == 0 {
+			return false
+		}
+	}
+	return true
+}

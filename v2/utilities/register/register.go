@@ -3,6 +3,7 @@ package register
 import (
 	"fmt"
 	"math"
+	"math/bits"
 
 	"github.com/nnurry/probabilistics/v2/utilities/arch"
 )
@@ -77,6 +78,17 @@ func PrintAll(r Register) {
 
 func checkValueOutbound(r Register, value uint) bool {
 	return value > r.MaxValue()
+}
+
+func GetBitNums(r Register) (bit1Num uint64, bit0Num uint64) {
+	for i := uint(0); i < r.Capacity(); i++ {
+		x, _ := r.Read(i)
+		posPopulation := bits.OnesCount(x)
+		negPopulation := arch.IntSize - posPopulation
+		bit1Num += uint64(posPopulation)
+		bit0Num += uint64(negPopulation)
+	}
+	return bit1Num, bit0Num
 }
 
 func NewRegister(capacity, bitWidth uint) (r Register, err error) {
