@@ -20,14 +20,19 @@ type HashOutType interface {
 
 type HashFunction[T HashOutType] func([]byte, T) ([]T, error)
 type HashAttribute struct {
-	hashFamily  string
-	platformBit uint
-	outputBit   uint
+	HashFamily  string
+	PlatformBit uint
+	OutputBit   uint
 }
 
 var unsignedInt32HashFunctions = map[HashAttribute]HashFunction[uint32]{}
 var unsignedInt64HashFunctions = map[HashAttribute]HashFunction[uint64]{
-	{"murmur3", 64, 128}: murmur3Hash128,
+	{"murmur3Hash128Default", 64, 128}:   murmur3Hash128Default,
+	{"murmur3Hash128Spaolacci", 64, 128}: murmur3Hash128Spaolacci,
+	{"murmur3Hash64Spaolacci", 64, 64}:   murmur3Hash64Spaolacci,
+	{"murmur3Hash256Bnb", 64, 256}:       murmur3Hash256Bnb,
+	{"xxHashCespare", 64, 64}:            xxHash64Cespare,
+	{"xxHashOneOfOne", 64, 64}:           xxHash64OneOfOne,
 }
 
 func NewHashFunction[T HashOutType](family string, platformBit uint, outputBit uint) (HashFunction[T], error) {
